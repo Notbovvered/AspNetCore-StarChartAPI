@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using StarChart.Data;
+using StarChart.Models;
 
 namespace StarChart.Controllers
 {
@@ -17,17 +18,34 @@ namespace StarChart.Controllers
         {
             _context = context;
         }
-        [HttpGet("{id:int}", Name = "GetById")]
-        public IActionResult GetByName (int id)
+        [HttpGet("{name}")]
+        public IActionResult GetByName (string name)
         {
-            var CelestialObject = _context.CelestialObjects.Find(id);
-            if(CelestialObject == null)
+            var celestialObjects = _context.CelestialObjects.Where(e => e.Name == name);
+            if(!celestialObjects.Any())
             {
                 return NotFound();
             }
-            CelestialObject.Satellites = _context.CelestialObjects.Where(
-                c => c.OrbitedObjectId == id).ToList();
-            return Ok(CelestialObject);
+            foreach(var celestialObject in celestialObjects)
+            {
+                celestialObject.Satellites = _context.CelestialObjects.Where(
+                    e => e.OrbitedObjectId == celestialObject.Id).ToList();
+            }
+            return Ok(celestialObjects.ToList());
+
+            
+        }
+        [HttpGet]
+        public IActionResult GetByAll()
+        {
+            var celestialObjects = _context.CelestialObjects.ToList(); 
+            
+            foreach(var celestialObject in celestialObjects)
+            {
+                celestialObject.Satellites = _context.CelestialObjects.Where(e => e.OrbitedObjectId
+                    == celestialObject.Id).ToList();
+            }
+            return Ok(celestialObjects);
         }
     }
 }
