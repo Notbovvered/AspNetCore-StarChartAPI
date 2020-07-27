@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Edm.Library;
 using StarChart.Data;
 using StarChart.Models;
 
@@ -77,32 +78,43 @@ namespace StarChart.Controllers
 
             var existingObject = _context.CelestialObjects.Find(id);
             if (existingObject == null)
-            {
+            
                 return NotFound();
-            }
-            else
-            {
+            
+            
+            
                 existingObject.Name = celestialObject.Name;
                 existingObject.OrbitalPeriod = celestialObject.OrbitalPeriod;
                 existingObject.OrbitedObjectId = celestialObject.OrbitedObjectId;
                 _context.CelestialObjects.Update(existingObject);
                 _context.SaveChanges();
                 return NoContent();
-            }
+            
 
         }
         [HttpPatch("{id}/{name}")]
         public IActionResult RenameObject(int id, string name)
         {
-            var nameObject = _context.CelestialObject.Find(id);
+            var nameObject = _context.CelestialObjects.Find(id);
             if (nameObject == null)
-            {
+            return NotFound();
+
+            nameObject.Name = name;
+            _context.CelestialObjects.Update(nameObject);
+            _context.SaveChanges();
+            return NoContent();
+            
+        }
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var celestialObjects = _context.CelestialObjects.Where(e =>
+                e.Id == id || e.OrbitedObjectId == id);
+            if (!celestialObjects.Any())
                 return NotFound();
-            }
-            else
-            {
-                nameObject.Name = CelestialObject.Name;
-            }
+            _context.CelestialObjects.RemoveRange(celestialObjects);
+            _context.SaveChanges();
+            return NoContent();
         }
     }
 }
